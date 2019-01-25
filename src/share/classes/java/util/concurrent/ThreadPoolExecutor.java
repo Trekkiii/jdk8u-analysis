@@ -690,7 +690,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          * @param firstTask the first task (null if none)
          */
         Worker(Runnable firstTask) {
-            // 不允许使用shutdownNow方法中断当前工作线程
+            // 构造工作线程，还未启动工作线程，不允许使用shutdownNow方法中断当前工作线程
             // shutdownNow方法只有在state >= 0时才会中断工作线程
             setState(-1); // inhibit interrupts until runWorker
             this.firstTask = firstTask;
@@ -892,7 +892,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         mainLock.lock();
         try {
             for (Worker w : workers)
-                // 此时的中断不需要获取工作线程的锁，所以当工作线程正在执行任务时，也可以对其中断（前期条件是当前任务能够响应中断，当然无法响应中断的任务可能永远不会终止）
+                // 此时的中断不需要获取工作线程的锁，所以当工作线程正在执行任务时，也可以对其中断（前期条件是当前任务能够响应中断，当然无法响应中断的任务也不会终止）
                 w.interruptIfStarted();
         } finally {
             mainLock.unlock();
@@ -926,8 +926,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      *                如果为true，则最多中断一个工作线程。
      *                只有在启用终止线程池但仍有其他工作线程时，才会从{@link #tryTerminate}调用此方法。
      *                在这种情况下，在当前所有线程都在等待的情况下，最多会中断一个等待的工作线程来传播{@code shutdown}信号。
-     *                中断任意线程可以确保{@link #shutdown}开始后新到达的工作线程最终也会退出。
-     *                为了保证最终终止，只需要中断一个空闲工作线程就足够了，但{@link #shutdown}会中断所有空闲工作线程，以便冗余工作线程立即退出，而不是等待任务完成。
+     *                中断任意线程可以确保{@link #shutdown()}开始后新到达的工作线程最终也会退出。
+     *                为了保证最终终止，只需要中断一个空闲工作线程就足够了，但{@link #shutdown()}会中断所有空闲工作线程，以便冗余工作线程立即退出，而不是等待任务完成。
      */
     private void interruptIdleWorkers(boolean onlyOne) {
         final ReentrantLock mainLock = this.mainLock;
@@ -1417,7 +1417,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 // 在第二种情况下这需要重新检查以在清除中断时处理shutdownNow的竞争。
                 //
                 // 这么做的意图是为了：
-                //      对于线程池状态为STOP、TIDYING、TERMINATED【针对shutdownNow】，希望正在执行任务的线程能够响应中断，立刻退出线程（当然前提条件是该任务能够响应中断，当然无法响应中断的任务可能永远不会终止）；
+                //      对于线程池状态为STOP、TIDYING、TERMINATED【针对shutdownNow】，希望正在执行的任务能够响应中断，立刻退出（当然前提条件是该任务能够响应中断，当然无法响应中断的任务可能永远不会终止）；
                 //      对于线程池的状态不为STOP、TIDYING、TERMINATED【针对shutdown】，则要保证线程能够顺利的执行正在执行的任务。
                 if ((runStateAtLeast(ctl.get(), STOP) // 判断线程是否处于STOP、TIDYING或者TERMINATED状态
                         || (Thread.interrupted() // 线程被中断，清除中断标记位
@@ -1774,7 +1774,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * 尝试停止所有正在执行的任务(actively executing tasks)，停止任务队列中待执行的任务的处理，并返回待执行的任务列表。
      * 从此方法返回时，这些任务将从任务队列中删除。
      * 此方法不等待正在执行的任务终止。使用{@link #awaitTermination}来做到这一点。
-     * 除了尽最大努力尝试停止正在执行的任务之外，不提供任何保证。此实现通过{@code Thread.interrupt}取消任务，因此任何无法响应中断的任务都可能永远不会终止。
+     * 除了尽最大努力尝试停止正在执行的任务之外，不提供任何保证。
+     * 此实现通过{@code Thread.interrupt}取消任务，因此任何无法响应中断的任务都可能永远不会终止。
      *
      * @throws SecurityException {@inheritDoc}
      */
