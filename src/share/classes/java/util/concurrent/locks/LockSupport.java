@@ -398,14 +398,20 @@ public class LockSupport {
     private static final long SECONDARY;
     static {
         try {
+            // 获取Unsafe实例
             UNSAFE = sun.misc.Unsafe.getUnsafe();
+            // 线程类类型
             Class<?> tk = Thread.class;
+            // 获取Thread的parkBlocker字段的内存偏移地址
             parkBlockerOffset = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("parkBlocker"));
+            // 获取Thread的threadLocalRandomSeed字段的内存偏移地址
             SEED = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("threadLocalRandomSeed"));
+            // 获取Thread的threadLocalRandomProbe字段的内存偏移地址
             PROBE = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("threadLocalRandomProbe"));
+            // 获取Thread的threadLocalRandomSecondarySeed字段的内存偏移地址
             SECONDARY = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("threadLocalRandomSecondarySeed"));
         } catch (Exception ex) { throw new Error(ex); }

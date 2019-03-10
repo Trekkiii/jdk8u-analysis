@@ -139,6 +139,8 @@ public class ReentrantLock implements Lock, java.io.Serializable {
                 int nextc = c + acquires;
                 if (nextc < 0) // overflow
                     throw new Error("Maximum lock count exceeded");
+                // 为什么不用CAS更新state？
+                // 线程执行到此处，意味着是同一线程，不存在并发问题，不需要使用CAS更新
                 setState(nextc);
                 return true;
             }

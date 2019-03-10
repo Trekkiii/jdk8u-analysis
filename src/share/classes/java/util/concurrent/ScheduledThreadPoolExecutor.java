@@ -613,7 +613,6 @@ public class ScheduledThreadPoolExecutor
      * Long.MAX_VALUE.
      * <p>
      * 将队列中所有延迟的值限制在Long.MAX_VALUE范围内，以避免在compareTo时溢出。
-     * 当其它一些延迟为Long.MAX_VALUE的任务添加到队列中时，可能会发生一个任务有资格出队，但是并没有出队的情况。
      */
     private long overflowFree(long delay) {
         Delayed head = (Delayed) super.getQueue().peek();
